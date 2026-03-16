@@ -4,7 +4,7 @@ Network Port Scanner
 A beginner-friendly tool to scan open ports on a target host.
 
 Usage:
-    python scanner.py --host <IP or hostname> [--start PORT] [--end PORT] [--timeout SECS] [--output FILE]
+    python scanner.py --host <IP or hostname> [--start PORT] [--end PORT] [--timeout SECS] [--output FILE] [--format {txt,json}]
 
 Example:
     python scanner.py --host 127.0.0.1 --start 1 --end 1024
@@ -46,7 +46,7 @@ def scan_port(host: str, port: int, timeout: float) -> dict:
     return result
 
 
-def run_scan(host: str, start: int, end: int, timeout: float, output: str | None):
+def run_scan(host: str, start: int, end: int, timeout: float, output: str | None, output_format: str):
     """Main scanning loop."""
     print_header(host, start, end)
 
@@ -65,7 +65,7 @@ def run_scan(host: str, start: int, end: int, timeout: float, output: str | None
     print(f"[✓] Found {len(open_ports)} open port(s) on {host}")
 
     if output:
-        save_report(host, open_ports, output)
+        save_report(host, open_ports, output, output_format)
         print(f"[✓] Report saved to: {output}")
 
 
@@ -77,7 +77,8 @@ def parse_args():
     parser.add_argument("--start",   type=int, default=DEFAULT_START_PORT, help=f"Start port (default: {DEFAULT_START_PORT})")
     parser.add_argument("--end",     type=int, default=DEFAULT_END_PORT,   help=f"End port   (default: {DEFAULT_END_PORT})")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT,  help=f"Timeout in seconds (default: {DEFAULT_TIMEOUT})")
-    parser.add_argument("--output",  type=str, default=None,               help="Save results to a text file")
+    parser.add_argument("--output",  type=str, default=None,               help="Save results to a file")
+    parser.add_argument("--format",  type=str, default="txt", choices=("txt", "json"), help="Output format when saving results (default: txt)")
     return parser.parse_args()
 
 
@@ -88,5 +89,6 @@ if __name__ == "__main__":
         start=args.start,
         end=args.end,
         timeout=args.timeout,
-        output=args.output
+        output=args.output,
+        output_format=args.format
     )
