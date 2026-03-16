@@ -3,6 +3,7 @@
 reporter.py — Terminal output and file report generation.
 """
 
+import json
 from datetime import datetime
 
 # ANSI color codes for colorized terminal output
@@ -47,7 +48,16 @@ def print_result(result: dict):
     print(f"  {GREEN}[OPEN]{RESET}  Port {BOLD}{port:5d}{RESET}  ({YELLOW}{service}{RESET}){banner_str}")
 
 
-def save_report(host: str, open_ports: list, filename: str):
+def save_report(host: str, open_ports: list, filename: str, output_format: str = "txt"):
+    """Write scan results to a file in the requested format."""
+    if output_format == "json":
+        _save_json_report(host, open_ports, filename)
+        return
+
+    _save_text_report(host, open_ports, filename)
+
+
+def _save_text_report(host: str, open_ports: list, filename: str):
     """Write a plaintext report of open ports to a file."""
     with open(filename, "w") as f:
         f.write("Network Port Scan Report\n")
@@ -62,3 +72,23 @@ def save_report(host: str, open_ports: list, filename: str):
             if banner:
                 line += f"  — {banner}"
             f.write(line + "\n")
+
+
+def _save_json_report(host: str, open_ports: list, filename: str):
+    """Write a JSON report with structured scan data."""
+    payload = {
+        "target": host,
+        "scanned_at": datetime.now().isoformat(timespec="seconds"),
+        "open_ports": [
+            {
+                "port": r["port"],
+                "service": get_service(r["port"]),
+                "banner": r.get("banner", "")
+            }
+            for r in open_ports
+        ]
+    }
+
+    with open(filename, "w") as f:
+        json.dump(payload, f, indent=2)
+        f.write("\n")
