@@ -20,7 +20,7 @@ A beginner-friendly Python tool for scanning open ports on a target host. Built 
 - ✅ Scan a single port or a range of ports
 - ✅ Detect open/closed ports
 - ✅ Grab service banners (e.g., SSH, HTTP)
-- ✅ Export results to a `.txt` report
+- ✅ Export results to `.txt` or `.json` reports
 - ✅ Colorized terminal output
 - ✅ Adjustable timeout for slow networks
 
@@ -44,6 +44,9 @@ python scanner.py --host 192.168.1.1 --start 20 --end 100
 
 # Save results to a file
 python scanner.py --host 127.0.0.1 --output results.txt
+
+# Save results as JSON
+python scanner.py --host 127.0.0.1 --output results.json --format json
 
 # Set a custom timeout (seconds)
 python scanner.py --host 127.0.0.1 --timeout 0.5
@@ -87,7 +90,7 @@ network-port-scanner/
 
 - [ ] Add UDP scanning support
 - [ ] Add multithreading for faster scans
-- [ ] Add JSON export format
+- [x] Add JSON export format
 - [ ] Add OS fingerprinting
 - [ ] Build a simple web UI
 
