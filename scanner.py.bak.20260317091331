@@ -4,7 +4,7 @@ Network Port Scanner
 A beginner-friendly tool to scan open ports on a target host.
 
 Usage:
-    python scanner.py --host <IP or hostname> [--start PORT] [--end PORT] [--timeout SECS] [--output FILE] [--threads N]
+    python scanner.py --host <IP or hostname> [--start PORT] [--end PORT] [--timeout SECS] [--output FILE]
 
 Example:
     python scanner.py --host 127.0.0.1 --start 1 --end 1024
@@ -13,17 +13,15 @@ Example:
 import socket
 import argparse
 import sys
-import threading
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
 from utils.banner import grab_banner
 from utils.reporter import print_result, save_report, print_header
 
+
 # --- Default Settings -------------------------------------------
 DEFAULT_START_PORT = 1
-DEFAULT_END_PORT = 1024
-DEFAULT_TIMEOUT = 1.0  # seconds
-DEFAULT_MAX_WORKERS = 100
+DEFAULT_END_PORT   = 1024
+DEFAULT_TIMEOUT    = 1.0  # seconds
 
 
 def scan_port(host: str, port: int, timeout: float) -> dict:
@@ -48,38 +46,18 @@ def scan_port(host: str, port: int, timeout: float) -> dict:
     return result
 
 
-def scan_port_thread(
-    host: str, port: int, timeout: float, output_lock: threading.Lock
-) -> None:
-    """
-    Scan a single port in a separate thread.
-    """
-    result = scan_port(host, port, timeout)
-    with output_lock:
-        if result["status"] == "open":
-            print_result(result)
-
-
-def run_scan(
-    host: str,
-    start: int,
-    end: int,
-    timeout: float,
-    output: str | None,
-    max_workers: int = DEFAULT_MAX_WORKERS,
-) -> None:
+def run_scan(host: str, start: int, end: int, timeout: float, output: str | None):
     """Main scanning loop."""
     print_header(host, start, end)
 
     open_ports = []
     start_time = datetime.now()
-    output_lock = threading.Lock()
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        executor.map(
-            lambda p: scan_port_thread(host, p, timeout, output_lock),
-            range(start, end + 1),
-        )
+    for port in range(start, end + 1):
+        result = scan_port(host, port, timeout)
+        if result["status"] == "open":
+            open_ports.append(result)
+            print_result(result)
 
     duration = datetime.now() - start_time
 
@@ -95,34 +73,11 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="🔍 Network Port Scanner — Learn network security hands-on"
     )
-    parser.add_argument("--host", required=True, help="Target IP address or hostname")
-    parser.add_argument(
-        "--start",
-        type=int,
-        default=DEFAULT_START_PORT,
-        help=f"Start port (default: {DEFAULT_START_PORT})",
-    )
-    parser.add_argument(
-        "--end",
-        type=int,
-        default=DEFAULT_END_PORT,
-        help=f"End port   (default: {DEFAULT_END_PORT})",
-    )
-    parser.add_argument(
-        "--timeout",
-        type=float,
-        default=DEFAULT_TIMEOUT,
-        help=f"Timeout in seconds (default: {DEFAULT_TIMEOUT})",
-    )
-    parser.add_argument(
-        "--output", type=str, default=None, help="Save results to a text file"
-    )
-    parser.add_argument(
-        "--threads",
-        type=int,
-        default=DEFAULT_MAX_WORKERS,
-        help=f"Maximum number of threads (default: {DEFAULT_MAX_WORKERS})",
-    )
+    parser.add_argument("--host",    required=True,                        help="Target IP address or hostname")
+    parser.add_argument("--start",   type=int, default=DEFAULT_START_PORT, help=f"Start port (default: {DEFAULT_START_PORT})")
+    parser.add_argument("--end",     type=int, default=DEFAULT_END_PORT,   help=f"End port   (default: {DEFAULT_END_PORT})")
+    parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT,  help=f"Timeout in seconds (default: {DEFAULT_TIMEOUT})")
+    parser.add_argument("--output",  type=str, default=None,               help="Save results to a text file")
     return parser.parse_args()
 
 
@@ -133,6 +88,5 @@ if __name__ == "__main__":
         start=args.start,
         end=args.end,
         timeout=args.timeout,
-        output=args.output,
-        max_workers=args.threads,
+        output=args.output
     )

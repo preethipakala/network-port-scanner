@@ -6,19 +6,30 @@ reporter.py — Terminal output and file report generation.
 from datetime import datetime
 
 # ANSI color codes for colorized terminal output
-GREEN  = "\033[92m"
+GREEN = "\033[92m"
 YELLOW = "\033[93m"
-CYAN   = "\033[96m"
-RESET  = "\033[0m"
-BOLD   = "\033[1m"
+CYAN = "\033[96m"
+RESET = "\033[0m"
+BOLD = "\033[1m"
 
 # Map of common port numbers to their service names
 SERVICE_NAMES = {
-    21: "FTP",    22: "SSH",    23: "Telnet", 25: "SMTP",
-    53: "DNS",    80: "HTTP",   110: "POP3",  143: "IMAP",
-    443: "HTTPS", 445: "SMB",   3306: "MySQL", 3389: "RDP",
-    5432: "PostgreSQL", 6379: "Redis", 8080: "HTTP-Alt",
-    27017: "MongoDB"
+    21: "FTP",
+    22: "SSH",
+    23: "Telnet",
+    25: "SMTP",
+    53: "DNS",
+    80: "HTTP",
+    110: "POP3",
+    143: "IMAP",
+    443: "HTTPS",
+    445: "SMB",
+    3306: "MySQL",
+    3389: "RDP",
+    5432: "PostgreSQL",
+    6379: "Redis",
+    8080: "HTTP-Alt",
+    27017: "MongoDB",
 }
 
 
@@ -40,11 +51,13 @@ def print_header(host: str, start: int, end: int):
 
 def print_result(result: dict):
     """Print a single open-port result to the terminal."""
-    port    = result["port"]
+    port = result["port"]
     service = get_service(port)
-    banner  = result.get("banner", "")
+    banner = result.get("banner", "")
     banner_str = f"  ↳ {banner}" if banner else ""
-    print(f"  {GREEN}[OPEN]{RESET}  Port {BOLD}{port:5d}{RESET}  ({YELLOW}{service}{RESET}){banner_str}")
+    print(
+        f"  {GREEN}[OPEN]{RESET}  Port {BOLD}{port:5d}{RESET}  ({YELLOW}{service}{RESET}){banner_str}"
+    )
 
 
 def save_report(host: str, open_ports: list, filename: str):
@@ -57,7 +70,7 @@ def save_report(host: str, open_ports: list, filename: str):
         f.write(f"Open Ports: {len(open_ports)}\n\n")
         for r in open_ports:
             service = get_service(r["port"])
-            banner  = r.get("banner", "")
+            banner = r.get("banner", "")
             line = f"  Port {r['port']:5d}  [{service}]"
             if banner:
                 line += f"  — {banner}"
