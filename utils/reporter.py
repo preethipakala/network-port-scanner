@@ -3,6 +3,7 @@
 reporter.py — Terminal output and file report generation.
 """
 
+import json
 from datetime import datetime
 
 # ANSI color codes for colorized terminal output
@@ -47,18 +48,38 @@ def print_result(result: dict):
     print(f"  {GREEN}[OPEN]{RESET}  Port {BOLD}{port:5d}{RESET}  ({YELLOW}{service}{RESET}){banner_str}")
 
 
-def save_report(host: str, open_ports: list, filename: str):
-    """Write a plaintext report of open ports to a file."""
-    with open(filename, "w") as f:
-        f.write("Network Port Scan Report\n")
-        f.write("========================\n")
-        f.write(f"Target  : {host}\n")
-        f.write(f"Date    : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"Open Ports: {len(open_ports)}\n\n")
-        for r in open_ports:
-            service = get_service(r["port"])
-            banner  = r.get("banner", "")
-            line = f"  Port {r['port']:5d}  [{service}]"
-            if banner:
-                line += f"  — {banner}"
-            f.write(line + "\n")
+def save_report(host: str, open_ports: list, filename: str, fmt: str = "txt"):
+    """Write a report of open ports to a file in the specified format."""
+    # Auto-append extension if filename has none
+    if "." not in filename.split("/")[-1].split("\\")[-1]:
+        filename += ".json" if fmt == "json" else ".txt"
+
+    if fmt == "json":
+        report = {
+            "target": host,
+            "scanned_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            "open_ports": [
+                {
+                    "port": r["port"],
+                    "service": get_service(r["port"]),
+                    "banner": r.get("banner", "")
+                }
+                for r in open_ports
+            ]
+        }
+        with open(filename, "w") as f:
+            json.dump(report, f, indent=2)
+    else:
+        with open(filename, "w") as f:
+            f.write("Network Port Scan Report\n")
+            f.write("========================\n")
+            f.write(f"Target  : {host}\n")
+            f.write(f"Date    : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Open Ports: {len(open_ports)}\n\n")
+            for r in open_ports:
+                service = get_service(r["port"])
+                banner  = r.get("banner", "")
+                line = f"  Port {r['port']:5d}  [{service}]"
+                if banner:
+                    line += f"  — {banner}"
+                f.write(line + "\n")
