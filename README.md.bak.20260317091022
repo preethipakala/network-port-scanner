@@ -23,7 +23,6 @@ A beginner-friendly Python tool for scanning open ports on a target host. Built 
 - ✅ Export results to a `.txt` report
 - ✅ Colorized terminal output
 - ✅ Adjustable timeout for slow networks
-- ✅ Scan multiple ports concurrently (default: 100 threads)
 
 ---
 
@@ -48,9 +47,6 @@ python scanner.py --host 127.0.0.1 --output results.txt
 
 # Set a custom timeout (seconds)
 python scanner.py --host 127.0.0.1 --timeout 0.5
-
-# Set the number of threads for concurrent scanning
-python scanner.py --host 127.0.0.1 --threads 50
 ```
 
 ---
@@ -90,6 +86,7 @@ network-port-scanner/
 ## 🔭 Next Steps / Ideas
 
 - [ ] Add UDP scanning support
+- [ ] Add multithreading for faster scans
 - [ ] Add JSON export format
 - [ ] Add OS fingerprinting
 - [ ] Build a simple web UI
@@ -99,47 +96,3 @@ network-port-scanner/
 ## 📜 License
 
 MIT License — free to use, modify, and learn from.
-
-```python
-import argparse
-import concurrent.futures
-import logging
-import socket
-import sys
-
-from utils.banner import grab_banner
-from utils.reporter import print_results
-
-def scan_port(host, port, timeout):
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(timeout)
-            s.connect((host, port))
-            banner = grab_banner(host, port)
-            return f"Port {port} is open ({banner})" if banner else f"Port {port} is open"
-    except (ConnectionRefusedError, socket.timeout):
-        return f"Port {port} is closed"
-
-def main():
-    parser = argparse.ArgumentParser(description="Network Port Scanner")
-    parser.add_argument("--host", required=True, help="Target host IP address")
-    parser.add_argument("--start", type=int, default=1, help="Starting port number")
-    parser.add_argument("--end", type=int, default=1024, help="Ending port number")
-    parser.add_argument("--timeout", type=float, default=1.0, help="Socket timeout in seconds")
-    parser.add_argument("--output", help="Save results to a file")
-    parser.add_argument("--threads", type=int, default=100, help="Number of threads for concurrent scanning")
-    args = parser.parse_args()
-
-    port_range = range(args.start, args.end + 1)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:
-        results = list(executor.map(lambda p: scan_port(args.host, p, args.timeout), port_range))
-
-    if args.output:
-        with open(args.output, "w") as f:
-            for result in results:
-                f.write(result + "\n")
-    else:
-        print_results(results)
-
-if __name__ == "__main__":
-    main()
